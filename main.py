@@ -14,6 +14,7 @@ import sys
 import os
 
 from sarah.functools import pick
+from sarah.runtime import get_by_path
 
 from mirte.core import Module
 
@@ -27,20 +28,6 @@ class Event(object):
 		for handler in self.handlers:
 			handler(*args, **kwargs)
 
-def _get_by_path(bits, _globals):
-	c = None
-	for i, bit in enumerate(bits):
-		try:
-			c = globals()[bit] if c is None else getattr(c, bit)
-		except (AttributeError, KeyError):
-			c = __import__('.'.join(bits[:i+1]), _globals,
-				fromlist=[bits[i+1]] if i+1 < len(bits) else [])
-	return c
-
-def get_by_path(path, _globals=None):
-	""" Returns an object by <path>, importing modules if necessary """
-	if _globals is None: _globals = list()
-	return _get_by_path(path.split('.'), _globals)
 
 def restricted_cover(l, succsOf):
 	""" Returns a restricted <succsOf> which only takes and yields

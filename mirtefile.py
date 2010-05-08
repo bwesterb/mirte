@@ -3,6 +3,7 @@ import sys
 import yaml
 import copy
 import os.path
+import logging
 
 from itertools import chain
 

@@ -1,7 +1,5 @@
 import threading
 import logging
-import select
-import socket
 import sys
 import os
 
@@ -11,6 +9,7 @@ from sarah.event import Event
 from sarah.order import sort_by_successors
 from sarah.runtime import get_by_path
 from sarah.itertools import pick
+from sarah.threading import KeyboardInterruptableEvent
 
 class Module(object):
 	def __init__(self, settings, logger):
@@ -47,10 +46,10 @@ class Manager(Module):
 		# module -> concrete modules implementing module
 		self.modules_implementing = dict()
 		self.insts_implementing = dict()
-		self._sleep_socketpair = socket.socketpair()
 		self.add_module_definition('module', ModuleDefinition())
 		self.add_module_definition('manager', ModuleDefinition())
 		self.register_instance('manager', 'manager', self, {}, {})
+		self.sleep_event = KeyboardInterruptableEvent()
 
 	def get_all(self, _type):
 		""" Gets all instances implementing type <_type> """
@@ -268,13 +267,12 @@ class Manager(Module):
 			ii.thread.start()
 		while self.running:
 			try:
-				select.select([self._sleep_socketpair[1]],
-					      [], [])
+				self.sleep_event.wait()
 			except KeyboardInterrupt:
 				self.l.warn("Keyboard interrupt")
 				self.running = False
 				break
-			self.l.info("Woke up from select")
+			self.l.info("Woke up")
 		self.l.info("Stopping modules")
 		for name in reversed(self.to_stop):
 			ii = self.insts[name]

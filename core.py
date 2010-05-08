@@ -9,7 +9,7 @@ from sarah.event import Event
 from sarah.order import sort_by_successors
 from sarah.runtime import get_by_path
 from sarah.itertools import pick
-from sarah.threading import KeyboardInterruptableEvent
+from sarah._threading import KeyboardInterruptableEvent
 
 class Module(object):
 	def __init__(self, settings, logger):

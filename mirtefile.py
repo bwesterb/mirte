@@ -110,7 +110,7 @@ def walk_mirteFiles(name):
 	""" Yields (cpath, d) for all dependencies of and including the
 	    mirte-file <name>, where <d> are the dictionaries from
 	    the mirte-file at <cpath> """
-	stack = [find_mirteFile(name)]
+	stack = [find_mirteFile(name, (os.getcwd(),))]
 	loadStack = []
 	had = dict()
 	while stack:

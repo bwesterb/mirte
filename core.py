@@ -48,7 +48,12 @@ class Manager(Module):
 		self.insts_implementing = dict()
 		self.add_module_definition('module', ModuleDefinition())
 		self.add_module_definition('manager', ModuleDefinition())
+		self.add_module_definition('threadPool', ModuleDefinition(
+			vsettings={'minFree': VSettingDefinition('minFree', 4),
+				   'maxFree': VSettingDefinition('maxFree', 8)},
+			implementedBy='mirte.threadPool.ThreadPool'))
 		self.register_instance('manager', 'manager', self, {}, {})
+		self.create_instance('threadPool', 'threadPool', {})
 		self.sleep_event = KeyboardInterruptableEvent()
 
 	def get_all(self, _type):
@@ -259,12 +264,12 @@ class Manager(Module):
 			self.l.info("Module %s exited normally" % ii.name)
 		assert not self.running
 		self.running = True
+		tp = self.insts['threadPool'].object
+		tp.start()
 		# Note that self.daemons is already dependency ordered for us
 		for name in self.daemons:
 			ii = self.insts[name]
-			ii.thread = threading.Thread(target=_daemon_entry,
-						     args=[ii])
-			ii.thread.start()
+			tp.execute(_daemon_entry, ii)
 		while self.running:
 			try:
 				self.sleep_event.wait()
@@ -278,11 +283,8 @@ class Manager(Module):
 			ii = self.insts[name]
 			self.l.info("  %s" % ii.name)
 			ii.object.stop()
-		self.l.info("Joining modules")
-		for name in reversed(self.daemons):
-			ii = self.insts[name]
-			self.l.info("  %s" % ii.name)
-			ii.thread.join()
+		self.l.info("Joining threadPool")
+		tp.join()
 	
 	def change_setting(self, instance_name, key, raw_value):
 		""" Change the settings <key> to <raw_value> of an instance

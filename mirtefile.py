@@ -1,6 +1,16 @@
 import os
+import sys
 import yaml
+import copy
 import os.path
+
+from itertools import chain
+
+from sarah.order import sort_by_successors, dual_cover, restricted_cover
+
+from mirte.core import ModuleDefinition, DepDefinition, VSettingDefinition
+
+SUFFIX = '.mirte'
 
 def depsOf_of_mirteFile_instance_definition(man, insts):
 	""" Returns a function that returns the dependencies of
@@ -87,31 +97,39 @@ def _load_mirteFile(d, m):
 		del(settings['module'])
 		m.create_instance(k, insts[k]['module'], settings)
 
-def walk_mirteFiles(path):
+def find_mirteFile(name, extra_path=None):
+	""" Resolves <name> to a path.  Uses <extra_path> """
+	extra_path = () if extra_path is None else extra_path
+	for bp in chain(extra_path, sys.path):
+		p = os.path.join(bp, name) + SUFFIX
+		if os.path.exists(p):
+			return os.path.abspath(p)
+	raise ValueError, "Couldn't find mirteFile %s" % name
+
+def walk_mirteFiles(name):
 	""" Yields (cpath, d) for all dependencies of and including the
-	    mirte-file at <path>, where <d> are the dictionaries from
+	    mirte-file <name>, where <d> are the dictionaries from
 	    the mirte-file at <cpath> """
-	stack = [path]
+	stack = [find_mirteFile(name)]
 	loadStack = []
 	had = dict()
 	while stack:
 		path = stack.pop()
-		if os.path.abspath(path) in had:
-			d = had[os.path.abspath(path)]
+		if path in had:
+			d = had[path]
 		else:
 			with open(path) as f:
 				d = yaml.load(f)
-			had[os.path.abspath(path)] = d
+			had[path] = d
 		loadStack.append((path, d))
 		if not 'includes' in d:
 			continue
 		for include in d['includes']:
-			p = os.path.join(os.path.dirname(path),
-						  include)
-			stack.append(p)
+			stack.append(find_mirteFile(include,
+				(os.path.dirname(path),)))
 	had = set()
 	for path, d in reversed(loadStack):
-		if os.path.abspath(path) in had:
+		if path in had:
 			continue
-		had.add(os.path.abspath(path))
+		had.add(path)
 		yield path, d

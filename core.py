@@ -2,12 +2,15 @@ import threading
 import logging
 import select
 import socket
-import copy
 import sys
 import os
 
 from itertools import product, chain
+
 from sarah.event import Event
+from sarah.order import sort_by_successors
+from sarah.runtime import get_by_path
+from sarah.itertools import pick
 
 class Module(object):
 	def __init__(self, settings, logger):

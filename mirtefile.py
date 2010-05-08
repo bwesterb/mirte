@@ -76,8 +76,14 @@ def module_definition_from_mirteFile_dict(man, d):
 def load_mirteFile(path, m, logger=None):
 	""" Loads the mirte-file at <path> into the manager <m>. """
 	l = logging.getLogger('load_mirteFile') if logger is None else logger
-	for path, d in walk_mirteFiles(path):
-		l.info('loading %s' % path)
+	had = set()
+	for name, path, d in walk_mirteFiles(path):
+		identifier = name
+		if name in had:
+			identifier = path
+		else:
+			had.add(name)
+		l.info('loading %s' % identifier)
 		_load_mirteFile(d, m)
 
 def _load_mirteFile(d, m):
@@ -111,26 +117,26 @@ def walk_mirteFiles(name):
 	""" Yields (cpath, d) for all dependencies of and including the
 	    mirte-file <name>, where <d> are the dictionaries from
 	    the mirte-file at <cpath> """
-	stack = [find_mirteFile(name, (os.getcwd(),))]
+	stack = [(name, find_mirteFile(name, (os.getcwd(),)))]
 	loadStack = []
 	had = dict()
 	while stack:
-		path = stack.pop()
+		name, path = stack.pop()
 		if path in had:
 			d = had[path]
 		else:
 			with open(path) as f:
 				d = yaml.load(f)
 			had[path] = d
-		loadStack.append((path, d))
+		loadStack.append((name, path, d))
 		if not 'includes' in d:
 			continue
 		for include in d['includes']:
-			stack.append(find_mirteFile(include,
-				(os.path.dirname(path),)))
+			stack.append((include, find_mirteFile(include,
+				(os.path.dirname(path),))))
 	had = set()
-	for path, d in reversed(loadStack):
+	for name, path, d in reversed(loadStack):
 		if path in had:
 			continue
 		had.add(path)
-		yield path, d
+		yield name, path, d

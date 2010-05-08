@@ -4,7 +4,7 @@ import os.path
 import sys
 
 from mirte.core import Manager
-from mirte.mirtefile import load_mirteFile
+from mirte.mirteFile import load_mirteFile
 
 from sarah.order import sort_by_successors
 

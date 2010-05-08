@@ -62,7 +62,7 @@ def main():
 	l = logging.getLogger('mirte')
 	options, args = parse_cmdLine(sys.argv[1:])
 	m = Manager(l)
-	path = args[0] if len(args) > 0 else 'default.mirte'
+	path = args[0] if len(args) > 0 else 'default'
 	load_mirteFile(path, m, logger=l)
 	execute_cmdLine_options(options, m, l)
 	m.run()

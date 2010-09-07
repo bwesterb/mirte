@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import optparse
 import logging
 import os.path

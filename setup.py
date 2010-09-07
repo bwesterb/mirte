@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+from get_git_version import get_git_version
 
 setup(name='mirte',
-      version='0.1.0a1',
+      version=get_git_version(),
       description='Runtime module framework',
       author='Bas Westerbaan',
       author_email='bas@westerbaan.name',
@@ -14,6 +15,7 @@ setup(name='mirte',
       install_requires = ['docutils>=0.3',
 	      		  'pyyaml>=3.00',
 			  'sarah>=0.1.0a1'],
+      setup_requires= ['get_git_version>=0.1.0'],
       entry_points = {
 	      'console_scripts': [
 		      'mirte = mirte.main:main',

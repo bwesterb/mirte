@@ -41,8 +41,8 @@ class ThreadPool(Module):
 			self.pool.cond.release()
 			self.l.debug("Bye")
 
-	def __init__(self, settings, logger):
-		super(ThreadPool, self).__init__(settings, logger)
+	def __init__(self, *args, **kwargs):
+		super(ThreadPool, self).__init__(*args, **kwargs)
 		self.running = True
 		self.jobs = list()
 		self.cond = threading.Condition()

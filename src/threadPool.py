@@ -28,7 +28,7 @@ class ThreadPool(Module):
 				try:
 					ret = job()
 				except Exception, e:
-					self.l.exception("Uncatched exception")
+					self.l.exception("Uncaught exception")
 					ret = True
 				self.pool.cond.acquire()
 				self.pool.actualFT += 1

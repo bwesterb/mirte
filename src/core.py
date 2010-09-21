@@ -269,7 +269,8 @@ class Manager(Module):
 		# Note that self.daemons is already dependency ordered for us
 		for name in self.daemons:
 			ii = self.insts[name]
-			tp.execute(_daemon_entry, ii)
+			tp.execute_named(_daemon_entry,
+					"mirte run %s" % name, ii)
 		while self.running:
 			try:
 				self.sleep_event.wait()

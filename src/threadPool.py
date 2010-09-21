@@ -92,7 +92,11 @@ class ThreadPool(Module):
 			workers = list(self.workers)
 		self.mcond.release()
 		for worker in workers:
-			worker.join()
+			while True:
+				worker.join(1)
+				if not worker.isAlive():
+					break
+				self.l.warn("Still waiting on %s" % worker)
 		self.l.info("   joined")
 	def stop(self):
 		self.running = False

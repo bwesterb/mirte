@@ -22,7 +22,8 @@ class ThreadPool(Module):
 				if not self.pool.jobs:
 					self.pool.cond.wait()
 					continue
-				job = self.pool.jobs.pop()
+				job, name = self.pool.jobs.pop()
+				self.name = name
 				self.pool.actualFT -= 1
 				self.pool.cond.release()
 				try:
@@ -53,7 +54,7 @@ class ThreadPool(Module):
 		self.workers = set()
 	
 	def _remove_worker(self):
-		self._queue(lambda: False)
+		self._queue(lambda: False, False)
 	
 	def _create_worker(self):
 		self.ncreated += 1
@@ -103,22 +104,25 @@ class ThreadPool(Module):
 		with self.mcond:
 			self.mcond.notify()
 	
-	def _queue(self, raw):
+	def _queue(self, raw, name=None):
 		if self.actualFT == 0:
 			self.l.warn("No actual free threads, yet "+
 				    "(increase threadPool.minFree)")
-		self.jobs.append(raw)
+		self.jobs.append((raw, name))
 		self.expectedFT -= 1
 		self.cond.notify()
 		self.mcond.notify()
 	
-	def execute(self, function, *args, **kwargs):
+	def execute_named(self, function, name=None, *args, **kwargs):
 		def _entry():
 			function(*args, **kwargs)
 			return True
 		with self.mcond:
 			with self.cond:
-				self._queue(_entry)
+				self._queue(_entry, name)
+	
+	def execute(self, function, *args, **kwargs):
+		self.execute_named(function, None, *args, **kwargs)
 	
 	def join(self):
 		self.main_thread.join()

@@ -7,6 +7,7 @@ from mirte.core import Manager
 from mirte.mirteFile import load_mirteFile
 
 from sarah.order import sort_by_successors
+import sarah.coloredLogging
 
 def parse_cmdLine(args):
 	""" Parses commandline arguments into options and arguments """
@@ -57,7 +58,7 @@ def execute_cmdLine_options(options, m, l):
 
 def main():
 	""" Entry-point """
-	logging.basicConfig(level=logging.DEBUG,
+	sarah.coloredLogging.basicConfig(level=logging.DEBUG,
 	    format="%(relativeCreated)d %(levelname)s:%(name)s:%(message)s")
 	l = logging.getLogger('mirte')
 	options, args = parse_cmdLine(sys.argv[1:])

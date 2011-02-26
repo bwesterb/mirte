@@ -43,8 +43,6 @@ def module_definition_from_mirteFile_dict(man, d):
 	if not 'settings' in d: d['settings'] = dict()
 	if 'implementedBy' in d:
 		m.implementedBy = d['implementedBy']
-	if 'run' in d and d['run']:
-		m.run = True
 	m.inherits = set(d['inherits'])
 	for p in d['inherits']:
 		if not p in man.modules:
@@ -53,6 +51,8 @@ def module_definition_from_mirteFile_dict(man, d):
 		m.vsettings.update(man.modules[p].vsettings)
 		m.inherits.update(man.modules[p].inherits)
 		m.run = m.run or man.modules[p].run
+	if 'run' in d:
+		m.run = d['run']
 	if len(m.inherits) == 0:
 		m.inherits = set(['module'])
 	for k, v in d['settings'].iteritems():

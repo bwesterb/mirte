@@ -95,22 +95,31 @@ def _load_mirteFile(d, m):
 	""" Loads the dictionary from the mirteFile into <m> """
 	defs = d['definitions'] if 'definitions' in d else {}
 	insts = d['instances'] if 'instances' in d else {}
+        # Filter out existing instances
+        insts_to_skip = []
+        for k in insts:
+                if k in m.insts:
+                        m.update_instance(k, dict(insts[k]))
+                        insts_to_skip.append(k)
+        for k in insts_to_skip:
+                del(insts[k])
+        # Sort module definitions by dependency
 	it = sort_by_successors(defs.keys(), dual_cover(defs.keys(),
 		restricted_cover(defs.keys(),
 				 depsOf_of_mirteFile_module_definition(defs))))
+        # Add module definitions
 	for k in it:
 		m.add_module_definition(k,
 			module_definition_from_mirteFile_dict(m, defs[k]))
+        # Sort instance declarations by dependency
 	it = sort_by_successors(insts.keys(),
 		dual_cover(insts.keys(), restricted_cover(insts.keys(),
 			depsOf_of_mirteFile_instance_definition(m, insts))))
+        # Create instances
 	for k in it:
 		settings = dict(insts[k])
-                if k in m.insts:
-                        m.update_instance(k, settings)
-                else:
-                        del(settings['module'])
-                        m.create_instance(k, insts[k]['module'], settings)
+                del(settings['module'])
+                m.create_instance(k, insts[k]['module'], settings)
 
 def find_mirteFile(name, extra_path=None):
 	""" Resolves <name> to a path.  Uses <extra_path> """

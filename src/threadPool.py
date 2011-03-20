@@ -48,17 +48,20 @@ class ThreadPool(Module):
 		self.jobs = list()
 		self.cond = threading.Condition()
 		self.mcond = threading.Condition()
-		self.actualFT = 0
-		self.expectedFT = 0
-		self.ncreated = 0
+		self.actualFT = 0       # actual number of free threads
+		self.expectedFT = 0     # expected number of free threads
+                self.expectedT = 0      # expected number of threads
+		self.ncreated = 0       # total number of threads created
 		self.workers = set()
 	
 	def _remove_worker(self):
 		self._queue(lambda: False, False)
+                self.expectedT -= 1
 	
 	def _create_worker(self):
 		self.ncreated += 1
 		self.expectedFT += 1
+		self.expectedT += 1
 		n = self.ncreated
 		l = logging.getLogger("%s.%s" % (self.l.name, n)) 
 		t = ThreadPool.Worker(self, l)
@@ -74,8 +77,12 @@ class ThreadPool(Module):
 		while self.running:
 			self.cond.acquire()
 			gotoSleep = False
-			tc = self.minFree - self.expectedFT + len(self.jobs)
-			td = self.expectedFT - len(self.jobs) - self.maxFree
+			tc = max(self.minFree - self.expectedFT
+                                        + len(self.jobs),
+                                self.min - self.expectedT)
+			td = min(self.expectedFT - len(self.jobs)
+                                        - self.maxFree,
+                                self.expectedT - self.min)
 			if tc > 0:
 				for i in xrange(tc):
 					self._create_worker()

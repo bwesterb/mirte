@@ -49,8 +49,9 @@ class Manager(Module):
 		self.add_module_definition('module', ModuleDefinition())
 		self.add_module_definition('manager', ModuleDefinition())
 		self.add_module_definition('threadPool', ModuleDefinition(
-			vsettings={'minFree': VSettingDefinition('minFree', 4),
-				   'maxFree': VSettingDefinition('maxFree', 8)},
+			vsettings={'minFree': VSettingDefinition('int', 4),
+				   'maxFree': VSettingDefinition('int', 8),
+                                   'min': VSettingDefinition('int', 8)},
 			implementedBy='mirte.threadPool.ThreadPool'))
 		self.register_instance('manager', 'manager', self, {}, {})
 		self.create_instance('threadPool', 'threadPool', {})

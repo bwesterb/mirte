@@ -21,8 +21,11 @@ def depsOf_of_mirteFile_instance_definition(man, insts):
 	    dictionary of instance definitions from a mirteFile """
 	return lambda x: map(lambda a: a[1],
 			     filter(lambda b: b[0] in \
-				[dn for dn, d in man.modules[insts[x][
-					'module']].deps.iteritems()],
+				[dn for dn, d in (
+                                        man.modules[
+                                                insts[x]['module']
+                                                ].deps.iteritems()
+                                        if 'module' in insts[x] else [])],
 				insts[x].items()))
 
 def depsOf_of_mirteFile_module_definition(defs):

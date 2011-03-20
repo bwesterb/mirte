@@ -40,7 +40,7 @@ class ThreadPool(Module):
 			self.pool.expectedFT -= 1
 			self.pool.workers.remove(self)
 			self.pool.cond.release()
-			self.l.debug("Bye")
+                        self.l.debug("Bye (%s)" % self.name)
 
 	def __init__(self, *args, **kwargs):
 		super(ThreadPool, self).__init__(*args, **kwargs)

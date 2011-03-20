@@ -206,6 +206,20 @@ class Manager(Module):
 					self.modules_implementing[t] = set()
 				self.modules_implementing[t].add(name)
 	
+        def update_instance(self, name, settings):
+                """ Updates settings of instance <name> with the
+                    dictionary <settings>. """
+                if not name in self.insts:
+                        raise ValueError, \
+                                "There's no instance named %s" % name
+                if 'module' in settings:
+                        raise ValueError, \
+                                ("Can't change module of existing instan"
+                                        +"ce %s") % name
+		self.l.info('update instance %-15s' % (name))
+                for k, v in settings.iteritems():
+                        self.change_setting(name, k, v)
+
 	def create_instance(self, name, moduleName, settings):
 		""" Creates an instance of <moduleName> at <name> with
 		    <settings>. """

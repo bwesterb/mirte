@@ -106,8 +106,11 @@ def _load_mirteFile(d, m):
 			depsOf_of_mirteFile_instance_definition(m, insts))))
 	for k in it:
 		settings = dict(insts[k])
-		del(settings['module'])
-		m.create_instance(k, insts[k]['module'], settings)
+                if k in m.insts:
+                        m.update_instance(k, settings)
+                else:
+                        del(settings['module'])
+                        m.create_instance(k, insts[k]['module'], settings)
 
 def find_mirteFile(name, extra_path=None):
 	""" Resolves <name> to a path.  Uses <extra_path> """

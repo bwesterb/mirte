@@ -12,6 +12,7 @@ class ThreadPool(Module):
 			threading.Thread.__init__(self)
 			self.l = l
 			self.pool = pool
+                        self.name = 'pristine'
 		def run(self):
 			self.l.debug("Hello")
 			self.pool.cond.acquire()
@@ -32,6 +33,7 @@ class ThreadPool(Module):
 					self.l.exception("Uncaught exception")
 					ret = True
 				self.pool.cond.acquire()
+                                self.name = 'free'
 				self.pool.actualFT += 1
 				self.pool.expectedFT += 1
 				if not ret:

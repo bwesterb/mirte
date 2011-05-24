@@ -31,6 +31,8 @@ def execute_cmdLine_options(options, m, l):
 	for k, v in options.iteritems():
 		bits = k.split('-', 1)
 		if len(bits) == 1:
+                        if not v in m.modules:
+                                raise KeyError, "No such module: %s" % v
 			inst_lut[bits[0]] = v
 		else:
 			if not bits[0] in opt_lut:

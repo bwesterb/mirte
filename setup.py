@@ -13,11 +13,11 @@ setup(name='mirte',
       zip_safe=True,
       package_dir={'mirte': 'src'},
       install_requires = ['docutils>=0.3',
-	      		  'pyyaml>=3.00',
-			  'sarah>=0.1.0a2'],
+                          'pyyaml>=3.00',
+                          'sarah>=0.1.0a2'],
       entry_points = {
-	      'console_scripts': [
-		      'mirte = mirte.main:main',
-	      ]
+              'console_scripts': [
+                      'mirte = mirte.main:main',
+              ]
       }
       )

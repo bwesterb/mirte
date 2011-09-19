@@ -36,6 +36,7 @@ class Manager(Module):
                         logger = logging.getLogger(object.__repr__(self))
                 super(Manager, self).__init__({}, logger)
                 self.running = False
+                self.running_event = threading.Event()
                 self.modules = dict()
                 self.to_stop = list() # objects to stop
                 self.daemons = list() # and to join
@@ -279,6 +280,7 @@ class Manager(Module):
                         self.l.info("Module %s exited normally" % ii.name)
                 assert not self.running
                 self.running = True
+                self.running_event.set()
                 tp = self.insts['threadPool'].object
                 tp.start()
                 # Note that self.daemons is already dependency ordered for us
@@ -291,8 +293,7 @@ class Manager(Module):
                                 self.sleep_event.wait()
                         except KeyboardInterrupt:
                                 self.l.warn("Keyboard interrupt")
-                                self.running = False
-                                break
+                                self.stop()
                         self.l.info("Woke up")
                 self.l.info("Stopping modules")
                 for name in reversed(self.to_stop):
@@ -329,6 +330,13 @@ class Manager(Module):
                                                       raw_value))
                 ii.settings[key] = value
                 ii.object.change_setting(key, value)
+
+        def stop(self):
+                if not self.running:
+                        return
+                self.running_event.clear()
+                self.running = False
+                self.sleep_event.set()
 
 class InstanceInfo(object):
         def __init__(self, name, module, obj, settings, deps):

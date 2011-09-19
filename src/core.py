@@ -58,7 +58,7 @@ class Manager(Module):
                 self.create_instance('threadPool', 'threadPool', {})
                 self.sleep_event = KeyboardInterruptableEvent()
 
-        def get_all(self, _type):
+        def _get_all(self, _type):
                 """ Gets all instances implementing type <_type> """
                 if not _type in self.modules:
                         raise ValueError, "No such module, %s" % _type
@@ -68,7 +68,10 @@ class Manager(Module):
         
         def get_a(self, _type):
                 """ Gets an instance implementing type <_type> """
-                tmp = self.get_all(_type)
+                return self.insts[self._get_a(_type)].object
+        def _get_a(self, _type):
+                """ Gets an instance implementing type <_type> """
+                tmp = self._get_all(_type)
                 ret = pick(tmp)
                 if len(tmp) != 1:
                         self.l.warn(("get_a: %s all implement %s; "+
@@ -111,7 +114,7 @@ class Manager(Module):
                 def get_all(self, _type):
                         ret = list()
                         if self.man.got_a(_type):
-                                ret.extend(self.man.get_all(_type))
+                                ret.extend(self.man._get_all(_type))
                         if _type in self.insts_implementing:
                                 ret.extend(self.insts_implementing[_type])
                         return ret
@@ -176,13 +179,17 @@ class Manager(Module):
 
         def get_or_create_a(self, _type):
                 """ Gets or creates an instance of type <_type> """
+                return self.insts[self._get_or_create_a(_type)].object
+
+        def _get_or_create_a(self, _type):
+                """ Gets or creates an instance of type <_type> """
                 self.l.debug("get_or_create_a: %s" % _type)
                 stack = [Manager.GoCa_Plan(self, {_type:()})]
                 while stack:
                         p = stack.pop()
                         if p.finished:
                                 p.execute()
-                                return p.get_a(_type)
+                                return p._get_a(_type)
                         for c in p.branches():
                                 stack.append(c)
                 raise NotImplementedError
@@ -235,7 +242,7 @@ class Manager(Module):
                 deps = dict()
                 for k, v in md.deps.iteritems():
                         if not k in settings:
-                                settings[k] = self.get_or_create_a(
+                                settings[k] = self._get_or_create_a(
                                                 v.type)
                         if not settings[k] in self.insts:
                                 raise ValueError, "No such instance %s" \

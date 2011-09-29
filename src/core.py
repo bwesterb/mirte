@@ -189,7 +189,7 @@ class Manager(Module):
                         p = stack.pop()
                         if p.finished:
                                 p.execute()
-                                return p._get_a(_type)
+                                return p.get_a(_type)
                         for c in p.branches():
                                 stack.append(c)
                 raise NotImplementedError

@@ -32,6 +32,9 @@ class ThreadPool(Module):
                                 except Exception, e:
                                         self.l.exception("Uncaught exception")
                                         ret = True
+                                # delete job.  Otherwise job will stay alive
+                                # while we wait on self.pool.cond
+                                del(job)
                                 self.pool.cond.acquire()
                                 self.name = 'free'
                                 self.pool.actualFT += 1

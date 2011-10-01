@@ -68,7 +68,7 @@ class ThreadPool(Module):
                 self.expectedFT += 1
                 self.expectedT += 1
                 n = self.ncreated
-                l = logging.getLogger("%s.%s" % (self.l.name, n)) 
+                l = logging.LoggerAdapter(self.l, {'sid': n})
                 t = ThreadPool.Worker(self, l)
                 self.workers.add(t)
                 t.start()

@@ -58,10 +58,20 @@ def execute_cmdLine_options(options, m, l):
                                 raise ValueError, "No such instance %s" % k
                         m.change_setting(k, k2, v2)
 
+class MirteFormatter(logging.Formatter):
+        def __init__(self):
+                pass
+        def format(self, record):
+                record.message = record.getMessage()
+                if 'sid' in record.__dict__:
+                        record.name += '.'+str(record.sid)
+                return ("%(relativeCreated)d %(levelname)"+
+                        "-8s%(name)s:%(message)s") % record.__dict__
+
 def main():
         """ Entry-point """
         sarah.coloredLogging.basicConfig(level=logging.DEBUG,
-            format="%(relativeCreated)d %(levelname)-8s%(name)s:%(message)s")
+                                formatter=MirteFormatter())
         l = logging.getLogger('mirte')
         options, args = parse_cmdLine(sys.argv[1:])
         m = Manager(l)

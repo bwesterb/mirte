@@ -65,8 +65,11 @@ class MirteFormatter(logging.Formatter):
                 record.message = record.getMessage()
                 if 'sid' in record.__dict__:
                         record.name += '.'+str(record.sid)
-                return ("%(relativeCreated)d %(levelname)"+
+                ret = ("%(relativeCreated)d %(levelname)"+
                         "-8s%(name)s:%(message)s") % record.__dict__
+                if record.exc_info:
+                        ret += self.formatException(record.exc_info)
+                return ret
 
 def main():
         """ Entry-point """

@@ -14,7 +14,7 @@ setup(name='mirte',
       package_dir={'mirte': 'src'},
       install_requires = ['docutils>=0.3',
                           'pyyaml>=3.00',
-                          'sarah>=0.1.1'],
+                          'sarah>=0.1.2'],
       entry_points = {
               'console_scripts': [
                       'mirte = mirte.main:main',

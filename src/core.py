@@ -42,6 +42,7 @@ class Manager(Module):
                 self.daemons = list() # and to join
                 self.valueTypes = {'str': str,
                                    'float': float,
+                                   'bool': bool,
                                    'int': int}
                 self.insts = dict()
                 # module -> concrete modules implementing module

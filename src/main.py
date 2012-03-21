@@ -1,4 +1,4 @@
-import optparse
+import argparse
 import logging
 import os.path
 import sys
@@ -9,9 +9,22 @@ from mirte.mirteFile import load_mirteFile
 from sarah.order import sort_by_successors
 import sarah.coloredLogging
 
-def parse_cmdLine(args):
-        """ Parses commandline arguments into options and arguments """
-        options = dict()
+def parse_static_cmdLine(args):
+        """ Uses argparse to parse the `static' commandLine options. """
+        parser = argparse.ArgumentParser(
+                description='Runs a Mirte module')
+        parser.add_argument('-p', '--profile', dest='profile',
+                metavar='FILE',
+                help='Enables profiling and write to FILE')
+        parser.add_argument('module', default='default', nargs='?',
+                help='Module to execute')
+        return parser.parse_known_args(args)
+
+def parse_cmdLine_instructions(args):
+        """ Parses remaining command-line arguments.  These are
+            instruction to the manager to create instances and
+            put settings. """
+        instructions = dict()
         rargs = list()
         for arg in args:
                 if arg[:2] == '--':
@@ -19,16 +32,17 @@ def parse_cmdLine(args):
                         bits = tmp.split('=', 1)
                         if len(bits) == 1:
                                 bits.append('')
-                        options[bits[0]] = bits[1]
+                        instructions[bits[0]] = bits[1]
                 else:
                         rargs.append(arg)
-        return options, rargs
+        return instructions, rargs
 
-def execute_cmdLine_options(options, m, l):
-        """ Applies the instructions given via <options> on the manager <m> """
+def execute_cmdLine_instructions(instructions, m, l):
+        """ Applies the instructions given via
+            <instructions> on the manager <m> """
         opt_lut = dict()
         inst_lut = dict()
-        for k, v in options.iteritems():
+        for k, v in instructions.iteritems():
                 bits = k.split('-', 1)
                 if len(bits) == 1:
                         if not v in m.modules:
@@ -73,14 +87,28 @@ class MirteFormatter(logging.Formatter):
 
 def main():
         """ Entry-point """
+        # There are two passes of command-line parsing.  First we use
+        # argparse to parse the static command-line options, like --profile.
+        # Then we use `parse_cmdLine_instructions' to handle the
+        # remaining instructions to the manager, like --threadPool-maxFree=3
+        options, args = parse_static_cmdLine(sys.argv[1:])
+        if options.profile:
+                import cProfile
+                cProfile.runctx('_profiled_main(options, args)',
+                                        globals(), locals(), options.profile)
+        else:
+                _profiled_main(options, args)
+
+def _profiled_main(options, args):
+        """ Remainder of main() that is to be profiled (if profiling is
+            enabled. """
         sarah.coloredLogging.basicConfig(level=logging.DEBUG,
                                 formatter=MirteFormatter())
         l = logging.getLogger('mirte')
-        options, args = parse_cmdLine(sys.argv[1:])
+        instructions, args = parse_cmdLine_instructions(args)
         m = Manager(l)
-        path = args[0] if len(args) > 0 else 'default'
-        load_mirteFile(path, m, logger=l)
-        execute_cmdLine_options(options, m, l)
+        load_mirteFile(options.module, m, logger=l)
+        execute_cmdLine_instructions(instructions, m, l)
         m.run()
 
 if __name__ == '__main__':

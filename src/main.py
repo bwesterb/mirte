@@ -15,7 +15,7 @@ def parse_static_cmdLine(args):
                 description='Runs a Mirte module')
         parser.add_argument('-p', '--profile', dest='profile',
                 metavar='FILE',
-                help='Enables profiling and write to FILE')
+                help='Enables profiling using yappi and write to FILE')
         parser.add_argument('module', default='default', nargs='?',
                 help='Module to execute')
         return parser.parse_known_args(args)
@@ -93,23 +93,23 @@ def main():
         # remaining instructions to the manager, like --threadPool-maxFree=3
         options, args = parse_static_cmdLine(sys.argv[1:])
         if options.profile:
-                import cProfile
-                cProfile.runctx('_profiled_main(options, args)',
-                                        globals(), locals(), options.profile)
-        else:
-                _profiled_main(options, args)
+                import yappi
+                yappi.start()
+        try:
+                sarah.coloredLogging.basicConfig(level=logging.DEBUG,
+                                        formatter=MirteFormatter())
+                l = logging.getLogger('mirte')
+                instructions, args = parse_cmdLine_instructions(args)
+                m = Manager(l)
+                load_mirteFile(options.module, m, logger=l)
+                execute_cmdLine_instructions(instructions, m, l)
+                m.run()
+        finally:
+                if options.profile:
+                        with open(options.profile, 'w') as f:
+                                yappi.stop()
+                                yappi.print_stats(f)
 
-def _profiled_main(options, args):
-        """ Remainder of main() that is to be profiled (if profiling is
-            enabled. """
-        sarah.coloredLogging.basicConfig(level=logging.DEBUG,
-                                formatter=MirteFormatter())
-        l = logging.getLogger('mirte')
-        instructions, args = parse_cmdLine_instructions(args)
-        m = Manager(l)
-        load_mirteFile(options.module, m, logger=l)
-        execute_cmdLine_instructions(instructions, m, l)
-        m.run()
 
 if __name__ == '__main__':
         if os.path.abspath('.') in sys.path:

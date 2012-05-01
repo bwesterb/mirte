@@ -264,6 +264,7 @@ class Manager(Module):
         il = logging.getLogger(name)
         obj = cl(settings, il)
         self.register_instance(name, moduleName, obj, settings, deps)
+        return obj
 
     def register_instance(self, name, moduleName, obj, settings, deps):
         md = self.modules[moduleName]

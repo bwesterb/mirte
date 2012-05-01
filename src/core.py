@@ -58,6 +58,8 @@ class Manager(Module):
         self.register_instance('manager', 'manager', self, {}, {})
         self.create_instance('threadPool', 'threadPool', {})
         self.sleep_event = KeyboardInterruptableEvent()
+        # set of paths of the mirteFiles that already have been loaded
+        self.loaded_mirteFiles = set([])
 
     def _get_all(self, _type):
         """ Gets all instances implementing type <_type> """

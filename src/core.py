@@ -277,18 +277,26 @@ class Manager(Module):
         if md.run:
             self.to_stop.append(name)
             self.daemons.append(name)
+            if self.running:
+                self._run_instance(name)
         elif hasattr(obj, 'stop'):
             self.to_stop.append(name)
 
+    def _run_instance(self, name):
+        ii = self.insts[name]
+        self.insts['threadPool'].object.execute_named(
+                self._daemon_entry, "mirte run %s" % name, ii)
+
+    def _daemon_entry(self, ii):
+        try:
+            ii.object.run()
+        except Exception:
+            self.l.exception(("Module %s exited "+
+                      "abnormally") % ii.name)
+            return
+        self.l.info("Module %s exited normally" % ii.name)
+
     def run(self):
-        def _daemon_entry(ii):
-            try:
-                ii.object.run()
-            except Exception:
-                self.l.exception(("Module %s exited "+
-                          "abnormally") % ii.name)
-                return
-            self.l.info("Module %s exited normally" % ii.name)
         assert not self.running
         self.running = True
         self.running_event.set()
@@ -296,9 +304,7 @@ class Manager(Module):
         tp.start()
         # Note that self.daemons is already dependency ordered for us
         for name in self.daemons:
-            ii = self.insts[name]
-            tp.execute_named(_daemon_entry,
-                    "mirte run %s" % name, ii)
+            self._run_instance(name)
         while self.running:
             try:
                 self.sleep_event.wait()

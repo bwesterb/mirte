@@ -3,6 +3,7 @@ import sys
 import yaml
 import copy
 import os.path
+import msgpack
 import logging
 
 from itertools import chain
@@ -11,6 +12,7 @@ from sarah.order import sort_by_successors, dual_cover, restricted_cover
 
 from mirte.core import ModuleDefinition, DepDefinition, VSettingDefinition
 
+CACHE_FILENAME_TEMPLATE = '.%s.msgpack'
 FILE_SUFFIX = '.mirte'
 DEFAULT_FILE = 'default.mirte'
 
@@ -36,7 +38,7 @@ def depsOf_of_mirteFile_module_definition(defs):
                  map(lambda y: y[1].get('type'),
                      defs[x]['settings'].items()
                     if 'settings' in defs[x] else []))) + \
-             (defs[x]['inherits'] if 'inherits' in defs[x] else [])
+             (list(defs[x]['inherits']) if 'inherits' in defs[x] else [])
 
 def module_definition_from_mirteFile_dict(man, d):
     """ Creates a ModuleDefinition instance from the dictionary <d> from
@@ -149,8 +151,7 @@ def walk_mirteFiles(name):
         if path in had:
             d = had[path]
         else:
-            with open(path) as f:
-                d = yaml.load(f)
+            d = _parse_mirteFile(path)
             had[path] = d
         loadStack.append((name, path, d))
         if not 'includes' in d:
@@ -164,4 +165,18 @@ def walk_mirteFiles(name):
             continue
         had.add(path)
         yield name, path, d
+
+def _parse_mirteFile(path):
+    """ Open and parses the mirteFile at <path>. """
+    cache_path = os.path.join(os.path.dirname(path),
+                CACHE_FILENAME_TEMPLATE % os.path.basename(path))
+    if (os.path.exists(cache_path) and
+                os.path.getmtime(cache_path) >= os.path.getmtime(path)):
+        with open(cache_path) as f:
+            return msgpack.unpack(f)
+    with open(path) as f:
+        ret = yaml.load(f)
+    with open(cache_path, 'w') as f:
+        msgpack.pack(ret, f)
+    return ret
 # vim: et:sta:bs=2:sw=4:

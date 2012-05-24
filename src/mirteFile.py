@@ -1,6 +1,12 @@
+from sarah.lazy import lazy
+
+@lazy
+def yaml():
+    import yaml
+    return yaml
+
 import os
 import sys
-import yaml
 import copy
 import os.path
 import msgpack

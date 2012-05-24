@@ -1,4 +1,3 @@
-import argparse
 import logging
 import os.path
 import sys
@@ -9,19 +8,8 @@ from mirte.mirteFile import load_mirteFile
 from sarah.order import sort_by_successors
 import sarah.coloredLogging
 
-def parse_static_cmdLine(args):
-    """ Uses argparse to parse the `static' commandLine options. """
-    parser = argparse.ArgumentParser(
-        description='Runs a Mirte module')
-    parser.add_argument('-p', '--profile', dest='profile',
-        metavar='FILE',
-        help='Enables profiling using yappi and write to FILE')
-    parser.add_argument('module', default='default', nargs='?',
-        help='Module to execute')
-    return parser.parse_known_args(args)
-
 def parse_cmdLine_instructions(args):
-    """ Parses remaining command-line arguments.  These are
+    """ Parses command-line arguments.  These are
         instruction to the manager to create instances and
         put settings. """
     instructions = dict()
@@ -87,28 +75,14 @@ class MirteFormatter(logging.Formatter):
 
 def main():
     """ Entry-point """
-    # There are two passes of command-line parsing.  First we use
-    # argparse to parse the static command-line options, like --profile.
-    # Then we use `parse_cmdLine_instructions' to handle the
-    # remaining instructions to the manager, like --threadPool-maxFree=3
-    options, args = parse_static_cmdLine(sys.argv[1:])
-    if options.profile:
-        import yappi
-        yappi.start()
-    try:
-        sarah.coloredLogging.basicConfig(level=logging.DEBUG,
-                    formatter=MirteFormatter())
-        l = logging.getLogger('mirte')
-        instructions, args = parse_cmdLine_instructions(args)
-        m = Manager(l)
-        load_mirteFile(options.module, m, logger=l)
-        execute_cmdLine_instructions(instructions, m, l)
-        m.run()
-    finally:
-        if options.profile:
-            with open(options.profile, 'w') as f:
-                yappi.stop()
-                yappi.print_stats(f)
+    sarah.coloredLogging.basicConfig(level=logging.DEBUG,
+                formatter=MirteFormatter())
+    l = logging.getLogger('mirte')
+    instructions, args = parse_cmdLine_instructions(sys.argv[1:])
+    m = Manager(l)
+    load_mirteFile(args[0] if args else 'default', m, logger=l)
+    execute_cmdLine_instructions(instructions, m, l)
+    m.run()
 
 
 if __name__ == '__main__':

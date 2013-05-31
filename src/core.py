@@ -243,21 +243,17 @@ class Manager(Module):
         deps = dict()
         for k, v in md.deps.iteritems():
             if not k in settings:
-                settings[k] = self._get_or_create_a(
-                        v.type)
+                settings[k] = self._get_or_create_a(v.type)
             if not settings[k] in self.insts:
-                raise ValueError, "No such instance %s" \
-                        % settings[k]
+                raise ValueError, "No such instance %s"  % settings[k]
             deps[k] = settings[k]
             settings[k] = self.insts[settings[k]].object
         for k, v in md.vsettings.iteritems():
             if not k in settings:
                 settings[k] = v.default
                 if v.default is None:
-                    self.l.warn('%s:%s not set' %
-                            (name, k))
-        self.l.info('create_instance %-15s %s' % (
-                name, md.implementedBy))
+                    self.l.warn('%s:%s not set' % (name, k))
+        self.l.info('create_instance %-15s %s' % (name, md.implementedBy))
         cl = get_by_path(md.implementedBy)
         il = logging.getLogger(name)
         obj = cl(settings, il)

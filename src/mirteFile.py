@@ -76,7 +76,7 @@ def module_definition_from_mirteFile_dict(man, d):
                 m.vsettings[k].default = v['default']
             continue
         if v['type'] in man.modules:
-            m.deps[k] = DepDefinition(v['type'])
+            m.deps[k] = DepDefinition(v['type'], v.get('allownull', False))
         elif v['type'] in man.valueTypes:
             m.vsettings[k] = VSettingDefinition(v['type'],
                 (man.valueTypes[v['type']](v['default'])

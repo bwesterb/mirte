@@ -244,10 +244,14 @@ class Manager(Module):
         for k, v in md.deps.iteritems():
             if not k in settings:
                 settings[k] = self._get_or_create_a(v.type)
-            if not settings[k] in self.insts:
+            if settings[k] is None:
+                if not v.allow_null:
+                    raise ValueError, "`null' not allowed for %s" % k
+            elif not settings[k] in self.insts:
                 raise ValueError, "No such instance %s"  % settings[k]
-            deps[k] = settings[k]
-            settings[k] = self.insts[settings[k]].object
+            else:
+                settings[k] = self.insts[settings[k]].object
+                deps[k] = settings[k]
         for k, v in md.vsettings.iteritems():
             if not k in settings:
                 settings[k] = v.default
@@ -363,8 +367,9 @@ class VSettingDefinition(object):
         self.type = _type
 
 class DepDefinition(object):
-    def __init__(self, _type=None):
+    def __init__(self, _type=None, allow_null=False):
         self.type = _type
+        self.allow_null = allow_null
 
 class ModuleDefinition(object):
     def __init__(self, deps=None, vsettings=None, implementedBy=None,

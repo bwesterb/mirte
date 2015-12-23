@@ -8,6 +8,7 @@ def yaml():
 import os
 import sys
 import copy
+import errno
 import os.path
 import msgpack
 import logging
@@ -183,11 +184,14 @@ def _parse_mirteFile(path, logger=None):
             return msgpack.unpack(f)
     with open(path) as f:
         ret = yaml.load(f)
-    if os.access(cache_path, os.W_OK):
+    try:
         with open(cache_path, 'w') as f:
             msgpack.pack(ret, f)
-    else:
-        l.warn('Not allowed to write %s', path)
+    except IOError as e:
+        if e.errno == errno.EACCES:
+            l.warn('Not allowed to write %s', path)
+        else:
+            raise
     return ret
 
 # vim: et:sta:bs=2:sw=4:

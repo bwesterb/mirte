@@ -8,6 +8,7 @@ def yaml():
 import os
 import sys
 import copy
+import errno
 import os.path
 import msgpack
 import logging
@@ -90,7 +91,7 @@ def load_mirteFile(path, m, logger=None):
     """ Loads the mirte-file at <path> into the manager <m>. """
     l = logging.getLogger('load_mirteFile') if logger is None else logger
     had = set()
-    for name, path, d in walk_mirteFiles(path):
+    for name, path, d in walk_mirteFiles(path, logger):
         if os.path.realpath(path) in m.loaded_mirteFiles:
             continue
         identifier = name
@@ -145,7 +146,7 @@ def find_mirteFile(name, extra_path=None):
             return os.path.abspath(p)
     raise ValueError, "Couldn't find mirteFile %s" % name
 
-def walk_mirteFiles(name):
+def walk_mirteFiles(name, logger=None):
     """ Yields (cpath, d) for all dependencies of and including the
         mirte-file <name>, where <d> are the dictionaries from
         the mirte-file at <cpath> """
@@ -157,7 +158,7 @@ def walk_mirteFiles(name):
         if path in had:
             d = had[path]
         else:
-            d = _parse_mirteFile(path)
+            d = _parse_mirteFile(path, logger)
             had[path] = d
         loadStack.append((name, path, d))
         if not 'includes' in d:
@@ -172,8 +173,9 @@ def walk_mirteFiles(name):
         had.add(path)
         yield name, path, d
 
-def _parse_mirteFile(path):
+def _parse_mirteFile(path, logger=None):
     """ Open and parses the mirteFile at <path>. """
+    l = logging.getLogger('_parse_mirteFile') if logger is None else logger
     cache_path = os.path.join(os.path.dirname(path),
                 CACHE_FILENAME_TEMPLATE % os.path.basename(path))
     if (os.path.exists(cache_path) and
@@ -182,7 +184,14 @@ def _parse_mirteFile(path):
             return msgpack.unpack(f)
     with open(path) as f:
         ret = yaml.load(f)
-    with open(cache_path, 'w') as f:
-        msgpack.pack(ret, f)
+    try:
+        with open(cache_path, 'w') as f:
+            msgpack.pack(ret, f)
+    except IOError as e:
+        if e.errno == errno.EACCES:
+            l.warn('Not allowed to write %s', path)
+        else:
+            raise
     return ret
+
 # vim: et:sta:bs=2:sw=4:

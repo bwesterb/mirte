@@ -64,10 +64,8 @@ class ThreadPool(Module):
             if prctl:
                 if value:
                     prctl.set_name(value)
-                    prctl.set_proctitle(value)
                 else:
                     prctl.set_name('(no name)')
-                    prctl.set_proctitle('(no name)')
 
     def __init__(self, *args, **kwargs):
         super(ThreadPool, self).__init__(*args, **kwargs)

@@ -32,6 +32,7 @@ class ThreadPool(Module):
                 self.name = name
                 if prctl:
                     prctl.set_name(name)
+                    prctl.set_proctitle(name)
                 self.pool.actualFT -= 1
                 self.pool.cond.release()
                 try:
@@ -46,6 +47,7 @@ class ThreadPool(Module):
                 self.name = 'free'
                 if prctl:
                     prctl.set_name('(free)')
+                    prctl.set_proctitle('(free)')
                 self.pool.actualFT += 1
                 self.pool.expectedFT += 1
                 if not ret:

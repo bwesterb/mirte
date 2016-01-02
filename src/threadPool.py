@@ -6,6 +6,11 @@ from sarah.event import Event
 import logging
 import threading
 
+try:
+    import prctl
+except ImportError:
+    prctl = None
+
 class ThreadPool(Module):
     class Worker(threading.Thread):
         def __init__(self, pool, l):
@@ -25,6 +30,8 @@ class ThreadPool(Module):
                     continue
                 job, name = self.pool.jobs.pop()
                 self.name = name
+                if prctl:
+                    prctl.set_name(name)
                 self.pool.actualFT -= 1
                 self.pool.cond.release()
                 try:
@@ -37,6 +44,8 @@ class ThreadPool(Module):
                 del(job)
                 self.pool.cond.acquire()
                 self.name = 'free'
+                if prctl:
+                    prctl.set_name('(free)')
                 self.pool.actualFT += 1
                 self.pool.expectedFT += 1
                 if not ret:

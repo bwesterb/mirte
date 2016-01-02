@@ -6,6 +6,11 @@ import threading
 
 from mirte.core import Manager
 
+try:
+    import prctl
+except ImportError:
+    prctl = None
+
 __singleton_manager = None
 
 def get_a_manager(threadPool_settings=None):
@@ -17,6 +22,8 @@ def get_a_manager(threadPool_settings=None):
     global __singleton_manager
     if __singleton_manager is None:
         def _thread_entry():
+            if prctl:
+                prctl.set_name('mirte manager')
             m.run()
             l.info('manager.run() returned')
         l = logging.getLogger('mirte.get_a_manager')

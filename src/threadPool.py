@@ -14,12 +14,14 @@ except ImportError:
 class ThreadPool(Module):
     class Worker(threading.Thread):
         def __init__(self, pool, l):
+            self._name = None
             threading.Thread.__init__(self)
             self.l = l
             self.pool = pool
-            self.name = 'pristine'
+
         def run(self):
             self.l.debug("Hello")
+            self.name = '(pristine)'
             self.pool.cond.acquire()
             self.pool.actualFT += 1
             while True:
@@ -30,9 +32,6 @@ class ThreadPool(Module):
                     continue
                 job, name = self.pool.jobs.pop()
                 self.name = name
-                if prctl:
-                    prctl.set_name(name)
-                    prctl.set_proctitle(name)
                 self.pool.actualFT -= 1
                 self.pool.cond.release()
                 try:
@@ -44,10 +43,7 @@ class ThreadPool(Module):
                 # while we wait on self.pool.cond
                 del(job)
                 self.pool.cond.acquire()
-                self.name = 'free'
-                if prctl:
-                    prctl.set_name('(free)')
-                    prctl.set_proctitle('(free)')
+                self.name = '(free)'
                 self.pool.actualFT += 1
                 self.pool.expectedFT += 1
                 if not ret:
@@ -57,6 +53,21 @@ class ThreadPool(Module):
             self.pool.workers.remove(self)
             self.pool.cond.release()
             self.l.debug("Bye (%s)" % self.name)
+
+        @property
+        def name(self):
+            return self._name
+
+        @name.setter
+        def name(self, value):
+            self._name = value
+            if prctl:
+                if value:
+                    prctl.set_name(value)
+                    prctl.set_proctitle(value)
+                else:
+                    prctl.set_name('(no name)')
+                    prctl.set_proctitle('(no name)')
 
     def __init__(self, *args, **kwargs):
         super(ThreadPool, self).__init__(*args, **kwargs)

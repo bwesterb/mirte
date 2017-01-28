@@ -1,10 +1,10 @@
-__names__ = ['get_a_manager']
-
 import logging
 
 import threading
 
 from mirte.core import Manager
+
+__names__ = ['get_a_manager']
 
 try:
     import prctl
@@ -12,6 +12,7 @@ except ImportError:
     prctl = None
 
 __singleton_manager = None
+
 
 def get_a_manager(threadPool_settings=None):
     """ On first call, creates and returns a @mirte.core.Manager.  On

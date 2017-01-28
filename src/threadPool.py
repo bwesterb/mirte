@@ -1,7 +1,6 @@
 from __future__ import with_statement
 
 from mirte.core import Module
-from sarah.event import Event
 
 import logging
 import threading
@@ -11,8 +10,11 @@ try:
 except ImportError:
     prctl = None
 
+
 class ThreadPool(Module):
+
     class Worker(threading.Thread):
+
         def __init__(self, pool, l):
             self._name = None
             threading.Thread.__init__(self)
@@ -36,7 +38,7 @@ class ThreadPool(Module):
                 self.pool.cond.release()
                 try:
                     ret = job()
-                except Exception, e:
+                except Exception:
                     self.l.exception("Uncaught exception")
                     ret = True
                 # delete job.  Otherwise job will stay alive
@@ -103,11 +105,11 @@ class ThreadPool(Module):
             self.cond.acquire()
             gotoSleep = False
             tc = max(self.minFree - self.expectedFT
-                    + len(self.jobs),
-                self.min - self.expectedT)
+                     + len(self.jobs),
+                     self.min - self.expectedT)
             td = min(self.expectedFT - len(self.jobs)
-                    - self.maxFree,
-                self.expectedT - self.min)
+                     - self.maxFree,
+                     self.expectedT - self.min)
             if tc > 0:
                 for i in xrange(tc):
                     self._create_worker()
@@ -131,6 +133,7 @@ class ThreadPool(Module):
                     break
                 self.l.warn("Still waiting on %s" % worker)
         self.l.info("   joined")
+
     def stop(self):
         self.running = False
         with self.mcond:
@@ -138,8 +141,8 @@ class ThreadPool(Module):
 
     def _queue(self, raw, name=None):
         if self.actualFT == 0:
-            self.l.warn("No actual free threads, yet "+
-                    "(increase threadPool.minFree)")
+            self.l.warn("No actual free threads, yet " +
+                        "(increase threadPool.minFree)")
         self.jobs.append((raw, name))
         self.expectedFT -= 1
         self.cond.notify()

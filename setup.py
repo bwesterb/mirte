@@ -25,7 +25,8 @@ setup(name='mirte',
       install_requires=['docutils>=0.3',
                         'pyyaml>=3.00',
                         'msgpack-python>=0.1.0',
-                        'sarah>=0.1.2'],
+                        'sarah>=0.1.2',
+                        'six >=1.2'],
       entry_points={
               'console_scripts': [
                   'mirte = mirte.main:main',

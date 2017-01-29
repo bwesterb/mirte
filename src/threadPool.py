@@ -1,6 +1,6 @@
-from __future__ import with_statement
-
 from mirte.core import Module
+
+from six.moves import range
 
 import logging
 import threading
@@ -111,10 +111,10 @@ class ThreadPool(Module):
                      - self.maxFree,
                      self.expectedT - self.min)
             if tc > 0:
-                for i in xrange(tc):
+                for i in range(tc):
                     self._create_worker()
             elif td > 0:
-                for i in xrange(td):
+                for i in range(td):
                     self._remove_worker()
             else:
                 gotoSleep = True

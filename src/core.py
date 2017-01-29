@@ -3,6 +3,10 @@ import logging
 
 from itertools import product, chain
 
+import six
+
+from six.moves import range
+
 from sarah.event import Event
 from sarah.order import sort_by_successors
 from sarah.runtime import get_by_path
@@ -13,7 +17,7 @@ from sarah._threading import KeyboardInterruptableEvent
 class Module(object):
 
     def __init__(self, settings, logger):
-        for k, v in settings.items():
+        for k, v in six.iteritems(settings):
             setattr(self, k, v)
         self.l = logger
         self.on_settings_changed = dict()
@@ -143,7 +147,7 @@ class Manager(Module):
                 if mod2 not in self.insts_implementing:
                     self.insts_implementing[mod2] = list()
                 self.insts_implementing[mod2].append(name)
-            for depName, dep in md.deps.iteritems():
+            for depName, dep in six.iteritems(md.deps):
                 if dep.type in self.targets:
                     self.targets[dep.type].append(
                         (name, depName))
@@ -162,8 +166,8 @@ class Manager(Module):
                 choices[target] = [(False, name) for name
                                    in self.man.modules_implementing[
                     target]]
-            choices_t = choices.items()
-            for choice in product(*[xrange(len(v))
+            choices_t = list(six.iteritems(choices))
+            for choice in product(*[list(range(len(v)))
                                     for k, v in choices_t]):
                 plan2 = Manager.GoCa_Plan(self.man, dict(),
                                           dict(self.insts),
@@ -180,7 +184,7 @@ class Manager(Module):
                 yield plan2
 
         def execute(self):
-            insts = frozenset(self.insts.keys())
+            insts = frozenset(six.iterkeys(self.insts))
             inst_list = tuple(sort_by_successors(
                 insts,
                 lambda inst: [self.insts[inst][2][k] for k
@@ -237,7 +241,7 @@ class Manager(Module):
             raise ValueError(("Can't change module of existing instan"
                               + "ce %s") % name)
         self.l.info('update instance %-15s' % (name))
-        for k, v in settings.iteritems():
+        for k, v in six.iteritems(settings):
             self.change_setting(name, k, v)
 
     def create_instance(self, name, moduleName, settings):
@@ -250,7 +254,7 @@ class Manager(Module):
             raise ValueError("There's no module %s" % moduleName)
         md = self.modules[moduleName]
         deps = dict()
-        for k, v in md.deps.iteritems():
+        for k, v in six.iteritems(md.deps):
             if k not in settings:
                 settings[k] = self._get_or_create_a(v.type)
             if settings[k] is None:
@@ -261,7 +265,7 @@ class Manager(Module):
             else:
                 settings[k] = self.insts[settings[k]].object
                 deps[k] = settings[k]
-        for k, v in md.vsettings.iteritems():
+        for k, v in six.iteritems(md.vsettings):
             if k not in settings:
                 settings[k] = v.default
                 if v.default is None:

@@ -2,6 +2,8 @@ import logging
 import os.path
 import sys
 
+import six
+
 from mirte.core import Manager
 from mirte.mirteFile import load_mirteFile
 
@@ -32,7 +34,7 @@ def execute_cmdLine_instructions(instructions, m, l):
         <instructions> on the manager <m> """
     opt_lut = dict()
     inst_lut = dict()
-    for k, v in instructions.iteritems():
+    for k, v in six.iteritems(instructions):
         bits = k.split('-', 1)
         if len(bits) == 1:
             if v not in m.modules:
@@ -43,7 +45,7 @@ def execute_cmdLine_instructions(instructions, m, l):
                 opt_lut[bits[0]] = list()
             opt_lut[bits[0]].append((bits[1], v))
     inst_list = sort_by_successors(
-        inst_lut.keys(),
+        six.viewkeys(inst_lut),
         lambda inst: [v for (k, v) in opt_lut.get(inst, ())
                       if k in m.modules[inst_lut[inst]].deps]
     )

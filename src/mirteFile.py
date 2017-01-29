@@ -10,6 +10,8 @@ import logging
 
 from itertools import chain
 
+import six
+
 from sarah.order import sort_by_successors, dual_cover, restricted_cover
 
 from mirte.core import ModuleDefinition, DepDefinition, VSettingDefinition
@@ -30,24 +32,20 @@ def depsOf_of_mirteFile_instance_definition(man, insts):
     """ Returns a function that returns the dependencies of
         an instance definition by its name, where insts is a
         dictionary of instance definitions from a mirteFile """
-    return lambda x: map(lambda a: a[1],
-                         filter(lambda b: b[0] in
-                                [dn for dn, d in (
-                                    man.modules[
-                                        insts[x]['module']
-                                    ].deps.iteritems()
-                                    if 'module' in insts[x] else [])],
-                                insts[x].items()))
+    return lambda x: [a[1] for a in six.iteritems(insts[x])
+                      if a[0] in [dn for dn, d in (
+                          six.iteritems(man.modules[insts[x]['module']].deps)
+                          if 'module' in insts[x] else [])]]
 
 
 def depsOf_of_mirteFile_module_definition(defs):
     """ Returns a function that returns the dependencies of a module
         definition by its name, where defs is a dictionary of module
         definitions from a mirteFile """
-    return lambda x: (filter(lambda z: z is not None and z in defs,
+    return lambda x: (list(filter(lambda z: z is not None and z in defs,
                              map(lambda y: y[1].get('type'),
-                                 defs[x]['settings'].items()
-                                 if 'settings' in defs[x] else []))) + \
+                                 six.iteritems(defs[x]['settings'])
+                                 if 'settings' in defs[x] else [])))) + \
         (list(defs[x]['inherits']) if 'inherits' in defs[x] else [])
 
 
@@ -73,7 +71,7 @@ def module_definition_from_mirteFile_dict(man, d):
         m.run = d['run']
     if len(m.inherits) == 0:
         m.inherits = set(['module'])
-    for k, v in d['settings'].iteritems():
+    for k, v in six.iteritems(d['settings']):
         if 'type' not in v:
             if k not in m.vsettings:
                 raise ValueError("No such existing vsetting %s" % k)
@@ -125,11 +123,11 @@ def _load_mirteFile(d, m):
         del(insts[k])
     # Sort module definitions by dependency
     it = sort_by_successors(
-        defs.keys(),
+        six.viewkeys(defs),
         dual_cover(
-            defs.keys(),
+            six.viewkeys(defs),
             restricted_cover(
-                defs.keys(),
+                six.viewkeys(defs),
                 depsOf_of_mirteFile_module_definition(defs)
             )
         )
@@ -142,11 +140,11 @@ def _load_mirteFile(d, m):
         )
     # Sort instance declarations by dependency
     it = sort_by_successors(
-        insts.keys(),
+        six.viewkeys(insts),
         dual_cover(
-            insts.keys(),
+            six.viewkeys(insts),
             restricted_cover(
-                insts.keys(),
+                six.viewkeys(insts),
                 depsOf_of_mirteFile_instance_definition(m, insts)
             )
         )

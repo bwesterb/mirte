@@ -1,7 +1,7 @@
 mirte Changelog
 ===============
 
-0.1.8 (unreleased)
+0.1.8 (2017-01-29)
 ------------------
 
 - Python 3 support

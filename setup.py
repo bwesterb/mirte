@@ -13,7 +13,7 @@ with open(os.path.join(base_path, 'README.rst')) as f:
 
 
 setup(name='mirte',
-      version='0.1.8.dev0',
+      version='0.1.8',
       description='Runtime module framework',
       long_description=long_description,
       author='Bas Westerbaan',
